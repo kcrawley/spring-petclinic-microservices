@@ -7,4 +7,4 @@ ARG ARTIFACT_NAME
 ADD ${ARTIFACT_NAME}.jar /app.jar
 ENV SPRING_PROFILES_ACTIVE docker,mysql
 RUN bash -c 'touch /app.jar'
-ENTRYPOINT ["java", "-javaagent:/dd-java-agent.jar", "-XX:+UnlockExperimentalVMOptions", "-XX:+UseCGroupMemoryLimitForHeap", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
+ENTRYPOINT ["java", "-javaagent:/dd-java-agent.jar", "-Xms256m", "-Xmx256m", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
