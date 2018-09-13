@@ -1,55 +1,62 @@
 version: '2'
 volumes:
   spring-db:
+networks:
+  dd-net:
+    external: true
 
 services:
   database-server:
     image: mysql:5.7.8
     container_name: database-server
     environment:
-      - MYSQL_ROOT_PASSWORD=petclinic
-      - MYSQL_DATABASE=petclinic
+    - MYSQL_ROOT_PASSWORD=petclinic
+    - MYSQL_DATABASE=petclinic
     ports:
-      - 3306:3306
+    - 3306:3306
     volumes:
-      - spring-db:/var/lib/mysql
+    - spring-db:/var/lib/mysql
 
   config-server:
     image: mszarlinski/spring-petclinic-config-server
     container_name: config-server
     environment:
-      - MALLOC_ARENA_MAX=4
+    - MALLOC_ARENA_MAX=4
     mem_limit: 512M
     ports:
-     - 8888:8888
+    - 8888:8888
 
   discovery-server:
     image: mszarlinski/spring-petclinic-discovery-server
     container_name: discovery-server
     environment:
-      - MALLOC_ARENA_MAX=4
+    - MALLOC_ARENA_MAX=4
     mem_limit: 512M
     links:
-     - config-server
+    - config-server
     depends_on:
-      - config-server
+    - config-server
     entrypoint: ["./wait-for-it.sh","config-server:8888","--timeout=60","--","java", "-javaagent:/dd-java-agent.jar", "-Xms256m", "-Xmx256m", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
-     - 8761:8761
+    - 8761:8761
 
   customers-service:
     image: mszarlinski/spring-petclinic-customers-service
     container_name: customers-service
+    networks:
+    - dd-net
     environment:
-      - MALLOC_ARENA_MAX=4
+    - MALLOC_ARENA_MAX=4
+    - DD_AGENT_HOST=datadog-agent
+    - DD_AGENT_PORT=8126
     mem_limit: 512M
     links:
-     - config-server
-     - discovery-server
-     - tracing-server
+    - config-server
+    - discovery-server
+    - tracing-server
     depends_on:
-     - config-server
-     - discovery-server
+    - config-server
+    - discovery-server
     entrypoint: ["./wait-for-it.sh","discovery-server:8761","--timeout=60","--","java", "-javaagent:/dd-java-agent.jar", "-Xms256m", "-Xmx256m", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
     - 8081:8081
@@ -57,85 +64,97 @@ services:
   visits-service:
     image: mszarlinski/spring-petclinic-visits-service
     container_name: visits-service
+    networks:
+    - dd-net
     mem_limit: 512M
     environment:
-      - MALLOC_ARENA_MAX=4
+    - MALLOC_ARENA_MAX=4
+    - DD_AGENT_HOST=datadog-agent
+    - DD_AGENT_PORT=8126
     links:
-      - config-server
-      - discovery-server
-      - tracing-server
+    - config-server
+    - discovery-server
+    - tracing-server
     depends_on:
-      - config-server
-      - discovery-server
+    - config-server
+    - discovery-server
     entrypoint: ["./wait-for-it.sh","discovery-server:8761","--timeout=60","--","java", "-javaagent:/dd-java-agent.jar", "-Xms256m", "-Xmx256m", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
-      - 8082:8082
+    - 8082:8082
 
   vets-service:
     image: mszarlinski/spring-petclinic-vets-service
     container_name: vets-service
+    networks:
+    - dd-net
     mem_limit: 512M
     environment:
-      - MALLOC_ARENA_MAX=4
+    - MALLOC_ARENA_MAX=4
+    - DD_AGENT_HOST=datadog-agent
+    - DD_AGENT_PORT=8126
     links:
-      - config-server
-      - discovery-server
-      - tracing-server
+    - config-server
+    - discovery-server
+    - tracing-server
     depends_on:
-      - config-server
-      - discovery-server
+    - config-server
+    - discovery-server
     entrypoint: ["./wait-for-it.sh","discovery-server:8761","--timeout=60","--","java", "-javaagent:/dd-java-agent.jar", "-Xms256m", "-Xmx256m", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
-      - 8083:8083
+    - 8083:8083
 
   api-gateway:
     image: mszarlinski/spring-petclinic-api-gateway
     container_name: api-gateway
+    networks:
+    - dd-net
     mem_limit: 512M
     environment:
-      - MALLOC_ARENA_MAX=4
+    - MALLOC_ARENA_MAX=4
+    - DD_AGENT_HOST=datadog-agent
+    - DD_AGENT_PORT=8126
     links:
-      - config-server
-      - discovery-server
-      - customers-service
-      - visits-service
-      - vets-service
-      - tracing-server
+    - config-server
+    - discovery-server
+    - customers-service
+    - visits-service
+    - vets-service
+    - tracing-server
     depends_on:
-      - config-server
-      - discovery-server
+    - config-server
+    - discovery-server
     entrypoint: ["./wait-for-it.sh","discovery-server:8761","--timeout=60","--","java", "-javaagent:/dd-java-agent.jar", "-Xms256m", "-Xmx256m", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
-     - 8080:8080
+    - 8080:8080
 
   tracing-server:
     image: mszarlinski/spring-petclinic-tracing-server
     container_name: tracing-server
     mem_limit: 512M
     environment:
-      - MALLOC_ARENA_MAX=4
+    - MALLOC_ARENA_MAX=4
     links:
-      - config-server
-      - discovery-server
+    - config-server
+    - discovery-server
     depends_on:
-      - config-server
-      - discovery-server
+    - config-server
+    - discovery-server
     entrypoint: ["./wait-for-it.sh","discovery-server:8761","--timeout=60","--","java", "-javaagent:/dd-java-agent.jar", "-Xms256m", "-Xmx256m", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
-      - 9411:9411
+    - 9411:9411
 
   admin-server:
     image: mszarlinski/spring-petclinic-admin-server
     container_name: admin-server
     mem_limit: 512M
     environment:
-      - MALLOC_ARENA_MAX=4
+    - MALLOC_ARENA_MAX=4
     links:
-      - config-server
-      - discovery-server
+    - config-server
+    - discovery-server
     depends_on:
-      - config-server
-      - discovery-server
+    - config-server
+    - discovery-server
     entrypoint: ["./wait-for-it.sh","discovery-server:8761","--timeout=60","--","java", "-javaagent:/dd-java-agent.jar", "-Xms256m", "-Xmx256m", "-Djava.security.egd=file:/dev/./urandom","-jar","/app.jar"]
     ports:
-      - 9090:9090
+    - 9090:9090
