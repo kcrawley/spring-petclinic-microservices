@@ -55,6 +55,7 @@ services:
     - petclinic-net
     environment:
     - MALLOC_ARENA_MAX=4
+    - DD_SERVICE_NAME=customers-service
     - DD_AGENT_HOST=datadog-agent
     - DD_AGENT_PORT=8126
     mem_limit: 512M
@@ -78,6 +79,7 @@ services:
     mem_limit: 512M
     environment:
     - MALLOC_ARENA_MAX=4
+    - DD_SERVICE_NAME=visits-service
     - DD_AGENT_HOST=datadog-agent
     - DD_AGENT_PORT=8126
     links:
@@ -99,6 +101,7 @@ services:
     - petclinic-net
     mem_limit: 512M
     environment:
+    - DD_SERVICE_NAME=vets-service
     - MALLOC_ARENA_MAX=4
     - DD_AGENT_HOST=datadog-agent
     - DD_AGENT_PORT=8126
@@ -122,6 +125,7 @@ services:
     mem_limit: 512M
     environment:
     - MALLOC_ARENA_MAX=4
+    - DD_SERVICE_NAME=api-gateway
     - DD_AGENT_HOST=datadog-agent
     - DD_AGENT_PORT=8126
     links:
