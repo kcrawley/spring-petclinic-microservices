@@ -2,6 +2,7 @@ version: '2'
 volumes:
   spring-db:
 networks:
+  petclinic-net:
   dd-net:
     external: true
 
@@ -9,6 +10,8 @@ services:
   database-server:
     image: mysql:5.7.8
     container_name: database-server
+    networks:
+    - petclinic-net
     environment:
     - MYSQL_ROOT_PASSWORD=petclinic
     - MYSQL_DATABASE=petclinic
@@ -20,6 +23,8 @@ services:
   config-server:
     image: mszarlinski/spring-petclinic-config-server
     container_name: config-server
+    networks:
+    - petclinic-net
     environment:
     - MALLOC_ARENA_MAX=4
     mem_limit: 512M
@@ -29,6 +34,8 @@ services:
   discovery-server:
     image: mszarlinski/spring-petclinic-discovery-server
     container_name: discovery-server
+    networks:
+    - petclinic-net
     environment:
     - MALLOC_ARENA_MAX=4
     mem_limit: 512M
@@ -45,6 +52,7 @@ services:
     container_name: customers-service
     networks:
     - dd-net
+    - petclinic-net
     environment:
     - MALLOC_ARENA_MAX=4
     - DD_AGENT_HOST=datadog-agent
@@ -66,6 +74,7 @@ services:
     container_name: visits-service
     networks:
     - dd-net
+    - petclinic-net
     mem_limit: 512M
     environment:
     - MALLOC_ARENA_MAX=4
@@ -87,6 +96,7 @@ services:
     container_name: vets-service
     networks:
     - dd-net
+    - petclinic-net
     mem_limit: 512M
     environment:
     - MALLOC_ARENA_MAX=4
@@ -108,6 +118,7 @@ services:
     container_name: api-gateway
     networks:
     - dd-net
+    - petclinic-net
     mem_limit: 512M
     environment:
     - MALLOC_ARENA_MAX=4
@@ -130,6 +141,8 @@ services:
   tracing-server:
     image: mszarlinski/spring-petclinic-tracing-server
     container_name: tracing-server
+    networks:
+    - petclinic-net
     mem_limit: 512M
     environment:
     - MALLOC_ARENA_MAX=4
@@ -146,6 +159,8 @@ services:
   admin-server:
     image: mszarlinski/spring-petclinic-admin-server
     container_name: admin-server
+    networks:
+    - petclinic-net
     mem_limit: 512M
     environment:
     - MALLOC_ARENA_MAX=4
